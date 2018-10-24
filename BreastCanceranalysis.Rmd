@@ -1,0 +1,97 @@
+---
+title: "Breast Cancer Analysis"
+output: html_notebook
+Author: _NELSON_ _GONZABATO_
+Dataset Location: #https://storage.googleapis.com/kaggle-datasets/17261/22667/wisconsin-breast-cancer-cytology.zip?GoogleAccessId=web-data@kaggle-161607.iam.gserviceaccount.com&Expires=1540520530&Signature=rXsujaMkrCvJCM6Erk7uC2TbqLn094mP7YyZcV96CN6O2x9CjLHt0LZ%2Bbvo0eQtd4f3TrtsiK8VguuulDO5Xi%2BCcPbyq9zpDxjaPPQHscyO8pJHG84x2GezXbq9suFcY6obcKK6w7hMX2aK0ze01rhoge6LoJuojXq7LDelw2%2B7g0pNKDW0So59iebCbedzEnO8MaAuGnKJIESbjaKmX%2FL0BAH7KLgds%2FubfVOow7RCwJMXUZtdpXK2saQ67EsUzFn%2FnwiUwdb%2B38b7nop0sgB0mu2HaiQYZyEXu8xp5%2F7eMDF1fNLybccswxaWukUzxN0kS9SLIwR6zyDnChj0SXw%3D%3D
+
+---
+Taking a look at this dataset.
+
+```{r}
+shh<-suppressMessages
+shh(library(Amelia))
+shh(library(tidyverse))
+shh(library(caret))
+shh(library(GGally))
+brscanc<-read.csv("BreastCancer2.csv")
+#What's the structure of our dataset?
+str(brscanc)
+#Do we hvae any missing values?
+missmap(brscanc,col=c("Firebrick4","steelblue"),x.cex=0.9,y.cex = 0.3,
+        main="Distribution map for Breast Cancer Data")
+#Great. There's no missing data
+#Let's do some exploratory data analysis
+brscanc %>% 
+  sample_n(13)
+#Make Id and class categorical
+
+brscanc<-brscanc %>% 
+  mutate(id=as.factor(id),class=as.factor(class)) %>% 
+  rename(Id=id,Class=class)
+#Visualize correlation between data variables 
+brscanc %>% 
+  ggplot(aes(thickness,fill=Class))+geom_histogram(stat="count")+
+  labs(title="Distribution of thickness with patient cancer class",
+       x="Tumor thickness",y="Number of cases",caption="Based on UCI Wisconsin data")+
+  scale_fill_manual(values=c("skyblue4","orange"))+
+  theme(plot.title = element_text(hjust=0.5))
+#From the plot, thickness is an important measure for predicting breast cancer as the more the thickness, the higher the number of cases.
+#We could conclude that the distinguishing tumor thickness is anything above 5.0
+#What about the distribution of other variables?
+
+
+
+
+```
+
+```{r}
+brscanc %>% 
+  ggplot(aes(nuclei,fill=Class))+geom_histogram(stat="count")+
+  labs(title="Number of nuclei with patient cancer class",
+       x="Tumor thickness",y="Number of cases",caption="Based on UCI Wisconsin data")+
+  scale_fill_manual(values=c("orange3","steelblue3"))+
+  theme(plot.title = element_text(hjust=0.5))
+#As the rate of cancer progresses increases, the rate of mitosis also increases which explains the increased number of nuclei in cancerous patients. There are however some outliers. Are these simply by mistake?
+```
+
+```{r}
+brscanc %>% 
+  ggplot(aes(shape,fill=Class))+geom_density(aes(alpha=0.3))+
+  labs(x="Tumor shape",title="Cancer Class distribution by shape")+
+  theme(plot.title = element_text(hjust=0.5))+
+  scale_fill_manual(values=c("steelblue4","orange"))
+#Again tumor shape tends to follow a similar distribution to the tumor thickness
+```
+
+```{r}
+  #Carry out some Machine Learning to predict cancer cases 
+brscanc<-brscanc %>% 
+          select(-Id)
+traincancer<-createDataPartition(brscanc$Class,p=0.8,list=F)
+validation<-brscanc[-traincancer,]
+traincancer<-brscanc[traincancer,]
+#Metric and control
+metric2<-"Accuracy"
+control2<-trainControl(method="cv",number = 10)
+```
+```{r}
+#Models
+fit.cart<-train(Class~.,data=traincancer,method="rpart",trControl=control2,metric=metric2)
+fit.rf<-train(Class~.,data=traincancer,method="rf",trControl=control2,metric=metric2)
+fit.gbm<-train(Class~.,data=traincancer,method="gbm",trControl=control2,metric=metric2)
+fit.svm<-train(Class~.,data=traincancer,method="svmRadial",
+               trControl=control2,metric=metric2)
+fit.knn<-train(Class~.,data=traincancer,method="knn",trControl=control2,metric=metric2)
+#results
+predtacc<-resamples(list(knn=fit.knn,gbm=fit.gbm,svm=fit.svm,rf=fit.rf,cart=fit.cart))
+#plot result
+dotplot(predtacc)
+```
+```{r}
+#Validate
+predictions<-predict(fit.gbm,validation)
+confusionMatrix(predictions,validation$Class)
+#Great, we have a pretty good but not excellent model
+#We could then use this on previously unseen test data.
+```
+
