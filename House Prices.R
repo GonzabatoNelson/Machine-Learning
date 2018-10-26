@@ -59,7 +59,7 @@ levels(newtrain$GarageYrBlt)
    sort(decreasing = T)
  #Great, There is no more missing data
 #Train
-trainme<-createDataPartition(newtrain11$SalePrice,p=0.8,list=F)
+trainme<-createDataPartition(newtrain11$SalePrice,p=0.85,list=F)
 validateme<-newtrain11[-trainme,]
 trainme<-newtrain11[trainme,]
 control<-trainControl(method ="cv",number=10)
@@ -90,8 +90,12 @@ gbmgrid<-expand.grid(
 fit.gbm_mod<-train(SalePrice~.,data=trainme,method="gbm",
                    trControl=control,metric=metric,
                verbose=F,tuneGrid=gbmgrid)
-print(fit.gbm_mod)#0.88
 
+#Model Performaces
+getTrainPerf(fit.gbm)
+getTrainPerf(fit.xgb)
+getTrainPerf(fit.rf)
+getTrainPerf(fit.svm)
 #Predict on validation set
 predval<-predict(fit.gbm,validateme)
 #Load test data
@@ -129,6 +133,20 @@ View(newtest11 %>%
   map_dbl(~sum(is.na(.x))) %>% 
   sort(decreasing = T))
 #View the NA
+getTrainPerf(fit.gbm_mod)
+gbmgrid1<-expand.grid(
+  n.trees=156,
+  interaction.depth=9,
+  shrinkage=0.1,#Smaller more trees,
+  n.minobsinnode=10#Higher values faster imputation
+)
+#Modified model test
+set.seed(233)
+fit.gbm_mod1<-train(SalePrice~.,data=trainme,method="gbm",
+                   trControl=control,metric=metric,
+                   verbose=F,tuneGrid=gbmgrid1)
+getTrainPerf(fit.gbm_mod1)
+#modify xgboost
 
 #Predict as we have 2 more missing values. replace these with 0
 predictedme<-predict(fit.gbm_mod,newtest11,na.action = na.pass)
@@ -138,6 +156,6 @@ resultme<-newtest11 %>%
   select(Id,SalePrice)
 anyNA(resultme)
 
-write.csv(resultme,"mysubmit2.csv",row.names = F)
+write.csv(resultme,"mysubmit25.csv",row.names = F)
 
 
