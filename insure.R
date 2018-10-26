@@ -52,13 +52,16 @@ fit.gbm<-train(charges~.,data=trainds,method="gbm",trControl=control,metric=metr
 set.seed(233)
 fit.xgb<-train(charges~.,data=trainds,method="xgbTree",trControl=control,metric=metric,
                verbose=F) 
-results<-resamples(list(knn=fit.knn,svm=fit.svm,xgb=fit.xgb,gbm=fit.gbm))   
+fit.rf<-train(charges~.,data=trainds,method="xgbTree",trControl=control,metric=metric,
+               verbose=F) 
+results<-resamples(list(knn=fit.knn,svm=fit.svm,xgb=fit.xgb,gbm=fit.gbm,rf=fit.rf))   
 #Visualize model accuarcies
 dotplot(results)  
  #Choose the gbm model
-print(fit.xgb)  
-print(fit.gbm)
-print(fit.svm) 
+getTrainPerf(fit.gbm)
+#...RF Perf 
+getTrainPerf(fit.rf)
+#...XGB Perf
+getTrainPerf(fit.xgb)
 predicted<-predict(fit.gbm,validate)
 plot(fit.gbm,main="GBM") 
-#The model accuarcy is not the best and can certainly be improved.  
