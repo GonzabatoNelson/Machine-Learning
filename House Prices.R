@@ -6,6 +6,7 @@ nomsg(library(RANN))
 nomsg(library(mice))
 nomsg(library(DiagrammeR))
 nomsg(library(Amelia))
+nomsg(library(Metrics))
 #Start working on data cleaning
 training<-read.csv("train.csv")
 training<-as.tibble(training)
@@ -135,27 +136,31 @@ View(newtest11 %>%
 #View the NA
 getTrainPerf(fit.gbm_mod)
 gbmgrid1<-expand.grid(
-  n.trees=156,
-  interaction.depth=9,
-  shrinkage=0.1,#Smaller more trees,
+  n.trees=4556,
+  interaction.depth=10,
+  shrinkage=0.01,#Smaller more trees,
   n.minobsinnode=10#Higher values faster imputation
 )
 #Modified model test
 set.seed(233)
 fit.gbm_mod1<-train(SalePrice~.,data=trainme,method="gbm",
-                   trControl=control,metric=metric,
+                   trControl=trainControl(method="repeatedcv",number=10,repeats=3),
+                   metric=metric,
                    verbose=F,tuneGrid=gbmgrid1)
 getTrainPerf(fit.gbm_mod1)
 #modify xgboost
 
 #Predict as we have 2 more missing values. replace these with 0
-predictedme<-predict(fit.gbm_mod,newtest11,na.action = na.pass)
+predictedme<-predict(fit.gbm_mod1,newtest11,na.action = na.pass)
 resultme<-newtest11 %>% 
   mutate(SalePrice=predictedme) %>% 
   mutate_all(funs(replace(.,is.na(.),mean(.)))) %>% 
   select(Id,SalePrice)
 anyNA(resultme)
-
-write.csv(resultme,"mysubmit25.csv",row.names = F)
+#metrics
+require(Metrics)
+paste0("RMSE is ",rmse(resultme$SalePrice,predictedme))
+paste0("RSE is ",rse(resultme$SalePrice,predictedme))    
+write.csv(resultme,"mysubmit27.csv",row.names = F)
 
 
