@@ -130,7 +130,7 @@ gbgrid<-expand.grid(n.trees=950,
 fit.gbm_modi<-train(Survived~.,data=train1,method="gbm",tuneGrid=gbgrid,
                     trControl=control,metric=metric,
                verbose=F)
-print(fit.gbm_modi)
+print(fit.gbm_modi)#Accuracy=83%
 #
 predictedtest_mod<-predict(fit.gbm_modi,newtest_imp,na.action=na.pass)
 Survival<-newtest_imp%>% 
@@ -140,3 +140,14 @@ Survival<-newtest_imp%>%
 cm1<-confusionMatrix(predictedtest_mod,Survival$Survived)
 cm1$overall
 write.csv(Survival,"submitme46.csv",row.names = F)
+#Tuned GBM 2
+set.seed(233)
+gbgrid2<-expand.grid(n.trees=350,
+                     interaction.depth=15,
+                     shrinkage=0.01,
+                     n.minobsinnode=15)
+fit.gbm_modi_1<-train(Survived~.,data=train1,method="gbm",tuneGrid=gbgrid,
+                    trControl=trainControl(method="repeatedcv",number = 10,repeats=3),
+                    metric=metric,
+                    verbose=F)
+print(fit.gbm_modi_1)
