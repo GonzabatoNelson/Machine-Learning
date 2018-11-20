@@ -89,4 +89,25 @@ movies_df1 %>%
   inner_join(get_sentiments("bing")) %>% 
   count(word,sentiment,sort=T) %>% 
   acast(word~sentiment,value.var = "n",fill=0) %>% 
-  comparison.cloud(colors =c("gray20","gray"),max.words =50)
+  comparison.cloud(colors =c("indianred4","steelblue3"),max.words =80)
+#Percentage of positive and negative words
+movies_df1 %>% 
+  mutate_if(is.factor,as.character) %>% 
+  unnest_tokens(word,text) %>% 
+  anti_join(stop_words) %>%
+  inner_join(get_sentiments("bing")) %>% 
+  count(word,sentiment,sort=T) %>% 
+  group_by(sentiment) %>% 
+  ggplot(aes(sentiment,fill=sentiment))+geom_histogram(stat="count")+
+  scale_fill_manual(values=sample(scales::hue_pal()(12)))+
+  labs(x=F,y="Word Count",title="How Positive are Movie Titles?",
+       caption="")+
+  scale_y_continuous(position = "right")+
+  theme( axis.title.x =element_blank(),
+         panel.background = element_rect(fill="snow"),
+         axis.text.x = element_text(size=13),
+         axis.title.y.right =element_text(angle=55,vjust = 0.5),
+         plot.title = element_text(hjust=0.5,color = cols))
+  
+
+  
