@@ -2,7 +2,7 @@
 A number of projects mainly executed on Kaggle
 **LINKS TO KAGGLE Kernels**
 https://www.kaggle.com/gonnel/xgboost-gbm-random-forest-to-predict-insurance
-https://www.kaggle.com/gonnel/titanic-random-forest-top-22-approach
+https://www.kaggle.com/gonnel/titanic-gbm-top-11-0-80382
 https://www.kaggle.com/gonnel/who-is-at-risk-of-cancer-a-simple-analysis
 https://www.kaggle.com/gonnel/back-pain-machine-learning-to-the-rescue
 https://www.kaggle.com/gonnel/what-s-in-an-eeg-are-your-eyes-open
