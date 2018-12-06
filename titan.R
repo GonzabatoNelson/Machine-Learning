@@ -1,4 +1,5 @@
 #Basic Machine Learning on kaggle titanic dataset
+#https://www.kaggle.com/gonnel/titanic-gbm-top-11-0-80382
 nomsg<-suppressMessages
 nomsg(library(tidyverse))
 nomsg(library(caret))
